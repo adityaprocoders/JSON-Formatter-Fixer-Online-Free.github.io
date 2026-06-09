@@ -1,0 +1,246 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght=400;500&family=Plus+Jakarta+Sans:wght=300;400;600;800&display=swap');
+
+:root { 
+    --primary: #3b82f6; 
+    --bg-dark: #020617; 
+    --panel-bg: rgba(15, 23, 42, 0.6); 
+}
+
+/* CRITICAL DASHBOARD FIX: Body ko screen tak restrict kiya taaki page scroll na ho */
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background-color: var(--bg-dark); 
+    color: #f1f5f9; 
+    overflow: hidden !important; 
+    height: 100vh !important; 
+    width: 100vw !important;
+}
+
+/* Container limits check rules */
+main { 
+    height: calc(100vh - 7rem) !important; /* Header aur footer ki height minus karke workspace fix */
+    min-height: 0 !important; 
+    display: flex; 
+    gap: 1rem; 
+    padding: 1rem; 
+    overflow: hidden; 
+}
+
+/* Buttons section always vertically locked in center */
+.btn-center-fix {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+/* Left Input Box aur Right Wrapper limits */
+#editor-container, .output-scroll-area { 
+    flex: 1; 
+    position: relative; 
+    overflow: auto !important; 
+    width: 100%;
+    height: 100%;
+    min-height: 0 !important; /* Grid/Flex compression overflow rule */
+}
+
+/* Original Token System Mapping */
+.mono { font-family: 'Fira Code', monospace; font-size: 13px; }
+.glass { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+.json-key { color: #7dd3fc; } 
+.json-string { color: #fda4af; } 
+.json-number { color: #bef264; } 
+.json-boolean, .json-null { color: #7de7eb; }
+
+/* AAPKA ORIGINAL ERROR HIGHLIGHTING OVERLAY LOGIC (PRESERVED 100%) */
+#error-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    padding: 24px; pointer-events: none; white-space: pre-wrap;
+    word-wrap: break-word; color: transparent; z-index: 1; line-height: 1.5;
+    box-sizing: border-box;
+}
+
+textarea#json-input {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 2; background: transparent !important; padding: 24px;
+    outline: none; resize: none; line-height: 1.5;
+    box-sizing: border-box;
+    scrollbar-gutter: stable;
+}
+
+.err-line { 
+    background: rgba(239, 68, 68, 0.15); 
+    border-bottom: 2px dashed #ef4444; 
+    display: inline-block; 
+    width: 100%; 
+    color: transparent;
+}
+
+/* Custom Scrollbars */
+.custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+#copy-toast {
+    position: fixed; bottom: 24px; right: 24px; background: #10b981;
+    color: white; padding: 12px 24px; border-radius: 12px;
+    font-size: 12px; font-weight: 800; transform: translateY(100px);
+    opacity: 0; transition: 0.4s; z-index: 1000;
+}
+#copy-toast.show { transform: translateY(0); opacity: 1; }
+
+/* RESPONSIVE BREAKPOINTS */
+@media (max-width: 768px) {
+    body { overflow-y: auto !important; height: auto !important; }
+    main { flex-direction: column; overflow: visible; height: auto !important; }
+    #editor-container, .output-scroll-area { height: 400px; flex: none; }
+    .btn-center-fix { flex-direction: row; width: 100%; padding: 10px 0; justify-content: center; }
+}
+
+
+/* Editor Wrapper and Absolute Core Configuration */
+.editor-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    display: flex;
+}
+
+/* Line Numbers column container */
+.line-numbers {
+    width: 45px;
+    padding: 24px 0;
+    text-align: right;
+    padding-right: 12px;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569; /* Slate grey color for inactive numbers */
+    background: #090d16;
+    user-select: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+    shrink-0: 0;
+}
+
+/* Active Line number highlighting inside error state */
+.line-numbers span.err-num {
+    color: #f87171 !important;
+    font-weight: bold;
+}
+
+/* Scrollable Layer Container targeting active editor views */
+.editor-scroll-bound {
+    flex: 1;
+    position: relative;
+    overflow: auto !important;
+    height: 100%;
+}
+
+/* Error Layer and Textarea Sync Alignment */
+#error-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: auto; min-height: 100%;
+    padding: 24px; pointer-events: none; white-space: pre;
+    color: transparent; z-index: 1; line-height: 1.5;
+    box-sizing: border-box; font-family: 'Fira Code', monospace; font-size: 13px;
+}
+
+textarea#json-input {
+    position: absolute; top: 0; left: 0; width: 100%; height: auto; min-height: 100%;
+    Nestor-z-index: 2; background: transparent !important; padding: 24px;
+    outline: none; resize: none; line-height: 1.5;
+    box-sizing: border-box; color: #94a3b8;
+    white-space: pre; overflow: hidden; /* Main bounding box rules scroll handles it */
+}
+
+/* Red Highlight on exact broken system line */
+.err-line { 
+    background: rgba(239, 68, 68, 0.2) !important; 
+    border-left: 3px solid #ef4444;
+    display: block; 
+    width: 100%; 
+}
+
+/* SCROLLBAR SCROLL RADAR MARKER POSITIONING SYSTEM */
+.editor-scroll-bound::-webkit-scrollbar { width: 10px; height: 10px; }
+.editor-scroll-bound::-webkit-scrollbar-track { background: #090d16; }
+.editor-scroll-bound::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+/* Radar indicator track emulation inside outer box */
+.scroll-radar-track {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 10px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+}
+.radar-marker {
+    position: absolute;
+    right: 0;
+    width: 10px;
+    height: 4px;
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444;
+    display: none;
+}
+
+#line-gutter div {
+    height: 22px;
+    line-height: 22px;
+}
+
+#error-layer div {
+    height: 22px;
+    line-height: 22px;
+    white-space: pre;
+};
+
+/* ==========================================================================
+   🚨 FORCE INNER BOXES INVERSION (ANTI-TAILWIND CLASH)
+   ========================================================================== */
+
+/* Left input container ka bg aur inner textarea dono ko target kiya hai */
+body[data-theme="light"] #json-input,
+body[data-theme="light"] #editor-scroller,
+body[data-theme="light"] .flex-1.flex.overflow-hidden.relative.min-h-0.w-full.bg-\[\#090d16\] {
+    background-color: #ffffff !important;   /* Force White Input Body */
+    color: #0f172a !important;              /* Sharp Slate Dark Text */
+}
+
+/* Right output wrapper aur pre tag ko target kiya hai */
+body[data-theme="light"] #output-wrapper,
+body[data-theme="light"] #json-output,
+body[data-theme="light"] #json-output pre {
+    background-color: #ffffff !important;   /* Force White Output Body */
+    color: #0f172a !important;              /* Sharp Slate Dark Text */
+}
+
+/* Gutter line handler */
+body[data-theme="light"] #line-gutter {
+    background-color: #f1f5f9 !important;   /* Light gray jaisa screenshot me dikha */
+    color: #475569 !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+body[data-theme="light"] #line-gutter div {
+    color: #475569 !important;
+}
+
+/* Caret/Cursor configuration for dark text typing */
+body[data-theme="light"] #json-input {
+    caret-color: #0f172a !important;
+}
+
+/* Placeholder visibility configuration */
+body[data-theme="light"] #json-input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* 🎨 JSON Highlighting Spans inversion inside Light Mode */
+body[data-theme="light"] #json-output .json-key { color: #1e3a8a !important; font-weight: bold !important; }
+body[data-theme="light"] #json-output .json-string { color: #0f766e !important; }
+body[data-theme="light"] #json-output .json-number { color: #b45309 !important; }
+body[data-theme="light"] #json-output .json-boolean { color: #6d28d9 !important; }
