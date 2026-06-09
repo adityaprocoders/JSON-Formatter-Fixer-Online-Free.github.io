@@ -102,8 +102,8 @@ router.get('/', (req, res) => {
 });
 
 
+
 router.post('/api/process-json', (req, res) => {
-    
     const { rawData, mode, numParts, itemsPer } = req.body;
 
     if (!rawData || !rawData.trim()) {
@@ -112,40 +112,29 @@ router.post('/api/process-json', (req, res) => {
 
     try {
         let processedData;
+        
+        let normalizedRaw = rawData.trim();
+        normalizedRaw = normalizedRaw.replace(/\]\s*\[/g, ',');
+        normalizedRaw = normalizedRaw.replace(/}\s*{/g, '},{');
+        normalizedRaw = normalizedRaw.replace(/]\s*{/g, '],{');
+        normalizedRaw = normalizedRaw.replace(/}\s*\[/g, '},[');
 
         
-        if (mode === 'fix' || mode === 'minify') {
-            
-            let fixedRaw = jsonrepair(rawData);
-            processedData = JSON.parse(fixedRaw);
-            
-            
-            if (Array.isArray(processedData)) {
-                processedData = processedData.flat(1);
-            }
-            
-            let itemsCount = Array.isArray(processedData) ? processedData.length : 1;
-            
-           
-            return res.json({ 
-                success: true, 
-                mode, 
-                data: processedData, 
-                totalItems: itemsCount 
-            });
-        }
+        if (!normalizedRaw.startsWith('[')) normalizedRaw = '[' + normalizedRaw;
+        if (!normalizedRaw.endsWith(']')) normalizedRaw = normalizedRaw + ']';
 
         
-        let safeRaw = jsonrepair(rawData);
-        let mergedRaw = safeRaw.replace(/\]\s*\[/g, ',');
-        let parsedData = JSON.parse(mergedRaw);
+        let fixedRaw = jsonrepair(normalizedRaw);
+        let parsedData = JSON.parse(fixedRaw);
 
+        
         if (Array.isArray(parsedData)) {
-            parsedData = parsedData.flat(1);
+            parsedData = parsedData.flat(Infinity);
         } else {
             parsedData = [parsedData];
         }
 
+        
         if (mode === 'shuffle') {
             processedData = serverShuffle([...parsedData]);
         } else if (mode === 'divide') {
