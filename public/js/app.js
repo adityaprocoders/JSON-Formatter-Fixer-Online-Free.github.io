@@ -39,13 +39,38 @@ function handleLiveCheck() {
     updateStatus("Typing...", "process");
 }
 
+function escapeHTML(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function highlight(json) {
-    if (typeof json !== 'string') json = JSON.stringify(json, null, 4);
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+    if (typeof json !== 'string') json = JSON.stringify(json, null, 4); 
+    return escapeHTML(json).replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
         let cls = 'json-number';
         if (/^"/.test(m)) cls = /:$/.test(m) ? 'json-key' : 'json-string';
         else if (/true|false/.test(m)) cls = 'json-boolean';
         return `<span class="${cls}">${m}</span>`;
+    });
+}
+
+function renderDivideOutput(parts) {
+    outputWrapper.innerHTML = ''; 
+    parts.forEach((p, index) => {
+        const card = document.createElement('div');
+        card.className = "flex flex-col bg-slate-900/40 ...";
+         
+        card.innerHTML = `...`; 
+
+        const body = document.createElement('div');
+        body.className = "p-4 overflow-auto max-h-[250px] custom-scroll";
+        
+        const pre = document.createElement('pre');
+        pre.className = "text-xs text-zinc-300 font-mono"; 
+        pre.innerHTML = highlight(p);
+        
+        body.appendChild(pre);
+        card.appendChild(body);
+        outputWrapper.appendChild(card);
     });
 }
 
